@@ -128,6 +128,8 @@ input,textarea{padding:6px;border:1px solid #ccc;border-radius:4px;font-size:13p
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
 
+  const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxcoEvzGTSkruI1N1tgJIhL7N1xh15ybpBUqDG2E6lkD89EpSQ74K7X3HNmiK-ziMY/exec';
+
   const comprasPage=document.getElementById('comprasPage');
   const comprovantesPage=document.getElementById('comprovantesPage');
   const consultaPage=document.getElementById('consultaPage');
@@ -146,9 +148,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('btnFiltrar').onclick=filtrar;
 
   function abrir(p){
-    comprasPage.style.display=p==='compras'?'block':'none';
-    comprovantesPage.style.display=p==='comprovantes'?'block':'none';
-    consultaPage.style.display=p==='consulta'?'block':'none';
+    comprasPage.style.display = p==='compras' ? 'block' : 'none';
+    comprovantesPage.style.display = p==='comprovantes' ? 'block' : 'none';
+    consultaPage.style.display = p==='consulta' ? 'block' : 'none';
   }
 
   abrir('compras');
@@ -160,19 +162,63 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 
   function salvarCompra(){
-    if(!nome.value||!valor.value||!descricao.value||!data.value){
-      alert('Preencha todos os campos');return;
+    if(!nome.value || !valor.value || !descricao.value || !data.value){
+      alert('Preencha todos os campos');
+      return;
     }
-    alert('Compra salva (simulação)');
+
+    const payload = {
+      nome: nome.value,
+      valor: valor.value,
+      descricao: descricao.value,
+      data: data.value
+    };
+
+ fetch(WEBAPP_URL, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(payload)
+})
+.then(r => r.text())
+.then(txt => {
+  console.log('Resposta do servidor:', txt);
+
+  let res;
+  try {
+    res = JSON.parse(txt);
+  } catch {
+    alert('Erro: resposta inválida do servidor');
+    return;
+  }
+
+  if (res.status === 'ok') {
+    alert('Compra salva com sucesso!');
+    nome.value='';
+    valor.value='';
+    descricao.value='';
+    data.value='';
+  } else {
+    alert('Erro ao salvar: ' + (res.message || ''));
+  }
+})
+.catch(err=>{
+  alert('Erro de conexão');
+  console.error(err);
+});
+
   }
 
   function filtrar(){
     const f=document.getElementById('filtro').value.toLowerCase();
     document.querySelectorAll('#listaComprovantes tr').forEach(tr=>{
-      tr.style.display=tr.innerText.toLowerCase().includes(f)?'':'none';
+      tr.style.display = tr.innerText.toLowerCase().includes(f) ? '' : 'none';
     });
   }
+
 });
 </script>
+
 </body>
 </html>
