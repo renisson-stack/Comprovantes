@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Compras</title>
+
+<style>
+body{font-family:Arial;margin:0;padding:10px;background:#f2f2f2}
+#mainframe{max-width:900px;margin:auto;background:#fff;padding:12px;border-radius:6px}
+
+.header-bar{
+  background:#5a2d82;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:6px;
+  margin-bottom:6px;
+}
+
+.header-buttons{display:flex;gap:8px;margin-bottom:12px}
+
+button{padding:6px 12px;font-size:13px;border:none;border-radius:4px;cursor:pointer}
+.btn-nav{
+  background:#d6c3e8;   /* lilás claro */
+  color:#4a1f6f;
+  font-weight:600;
+  border:1px solid #b79bd3;
+}
+
+.btn-nav:hover{
+  background:#c4a9de;
+}
+.btn-save{background:#007bff;color:#fff}
+.btn-anexo{background:#28a745;color:#fff}
+
+#comprasPage,#comprovantesPage,#consultaPage{display:none}
+
+.campo-linha{display:flex;flex-direction:column;margin-bottom:10px}
+label{font-weight:600;font-size:13px;margin-bottom:4px}
+input,textarea{padding:6px;border:1px solid #ccc;border-radius:4px;font-size:13px}
+
+.form-botoes{display:flex;justify-content:flex-start;gap:8px;margin-top:10px}
+
+.table{width:100%;border-collapse:collapse;font-size:12px}
+.table th,.table td{border:1px solid #ccc;padding:6px}
+.table th{background:#f0f0f0}
+
+.card{background:#fff;padding:12px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.05);margin-bottom:12px}
+
+.small{font-size:12px;color:#555}
+</style>
+</head>
+<body>
+<div id="mainframe">
+
+<!-- TÍTULO -->
+<div class="header-bar">
+  <h2>Controle de Compras</h2>
+</div>
+
+<!-- BOTÕES INDEPENDENTES -->
+<div class="header-buttons">
+  <button class="btn-nav" id="btnCompras">Compras</button>
+  <button class="btn-nav" id="btnComprovantes">Comprovantes</button>
+  <button class="btn-nav" id="btnConsulta">Consulta</button>
+</div>
+
+<!-- COMPRAS -->
+<div id="comprasPage">
+  <div class="campo-linha">
+    <label for="nome">Nome (quem comprou)</label>
+    <input id="nome" type="text">
+  </div>
+
+  <div class="campo-linha">
+    <label for="valor">Valor</label>
+    <input id="valor" type="text" placeholder="0,00">
+  </div>
+
+  <div class="campo-linha">
+    <label for="descricao">Descrição</label>
+    <textarea id="descricao"></textarea>
+  </div>
+
+  <div class="campo-linha">
+    <label for="data">Data</label>
+    <input id="data" type="date">
+  </div>
+
+  <div class="campo-linha">
+    <label for="foto">Foto do comprovante (NF)</label>
+    <input id="foto" type="file" accept="image/*">
+  </div>
+
+  <div class="form-botoes">
+    <button class="btn-save" id="btnSalvar">Salvar Compra</button>
+  </div>
+</div>
+
+<!-- COMPROVANTES -->
+<div id="comprovantesPage">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Nome</th>
+        <th>Valor</th>
+        <th>Descrição</th>
+        <th>Comprovante</th>
+      </tr>
+    </thead>
+    <tbody id="listaComprovantes">
+      <tr><td colspan="5">Nenhum registro carregado</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CONSULTA -->
+<div id="consultaPage">
+  <div class="card">
+    <input id="filtro" placeholder="Buscar por nome ou data">
+    <button class="btn-save" id="btnFiltrar">Buscar</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+
+  const comprasPage=document.getElementById('comprasPage');
+  const comprovantesPage=document.getElementById('comprovantesPage');
+  const consultaPage=document.getElementById('consultaPage');
+
+  const nome=document.getElementById('nome');
+  const valor=document.getElementById('valor');
+  const descricao=document.getElementById('descricao');
+  const data=document.getElementById('data');
+  const foto=document.getElementById('foto');
+
+  document.getElementById('btnCompras').onclick=()=>abrir('compras');
+  document.getElementById('btnComprovantes').onclick=()=>abrir('comprovantes');
+  document.getElementById('btnConsulta').onclick=()=>abrir('consulta');
+
+  document.getElementById('btnSalvar').onclick=salvarCompra;
+  document.getElementById('btnFiltrar').onclick=filtrar;
+
+  function abrir(p){
+    comprasPage.style.display=p==='compras'?'block':'none';
+    comprovantesPage.style.display=p==='comprovantes'?'block':'none';
+    consultaPage.style.display=p==='consulta'?'block':'none';
+  }
+
+  abrir('compras');
+
+  valor.addEventListener('input',()=>{
+    let v=valor.value.replace(/\D/g,'');
+    v=(v/100).toFixed(2).replace('.',',');
+    valor.value=v;
+  });
+
+  function salvarCompra(){
+    if(!nome.value||!valor.value||!descricao.value||!data.value){
+      alert('Preencha todos os campos');return;
+    }
+    alert('Compra salva (simulação)');
+  }
+
+  function filtrar(){
+    const f=document.getElementById('filtro').value.toLowerCase();
+    document.querySelectorAll('#listaComprovantes tr').forEach(tr=>{
+      tr.style.display=tr.innerText.toLowerCase().includes(f)?'':'none';
+    });
+  }
+});
+</script>
+</body>
+</html>
