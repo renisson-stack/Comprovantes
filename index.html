@@ -15,13 +15,16 @@ body{font-family:Arial;margin:0;padding:10px;background:#f2f2f2}
   padding:6px 10px;
   border-radius:6px;
   margin-bottom:6px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-.header-buttons{display:flex;gap:8px;margin-bottom:12px}
+.header-buttons{display:flex;gap:8px}
 
 button{padding:6px 12px;font-size:13px;border:none;border-radius:4px;cursor:pointer}
 .btn-nav{
-  background:#d6c3e8;   /* lilás claro */
+  background:#d6c3e8;
   color:#4a1f6f;
   font-weight:600;
   border:1px solid #b79bd3;
@@ -33,7 +36,7 @@ button{padding:6px 12px;font-size:13px;border:none;border-radius:4px;cursor:poin
 .btn-save{background:#007bff;color:#fff}
 .btn-anexo{background:#28a745;color:#fff}
 
-#comprasPage,#comprovantesPage,#consultaPage{display:none}
+#comprasPage,#comprovantesPage{display:none}
 
 .campo-linha{display:flex;flex-direction:column;margin-bottom:10px}
 label{font-weight:600;font-size:13px;margin-bottom:4px}
@@ -41,28 +44,76 @@ input,textarea{padding:6px;border:1px solid #ccc;border-radius:4px;font-size:13p
 
 .form-botoes{display:flex;justify-content:flex-start;gap:8px;margin-top:10px}
 
+.filtro-container{
+  background:#f8f9fa;
+  padding:12px;
+  border-radius:6px;
+  margin-bottom:12px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.filtro-container input{
+  flex:1;
+  padding:8px;
+}
+
 .table{width:100%;border-collapse:collapse;font-size:12px}
-.table th,.table td{border:1px solid #ccc;padding:6px}
+.table th,.table td{border:1px solid #ccc;padding:6px;text-align:center}
 .table th{background:#f0f0f0}
 
-.card{background:#fff;padding:12px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.05);margin-bottom:12px}
+.modal{
+  display:none;
+  position:fixed;
+  z-index:1000;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.8);
+}
 
-.small{font-size:12px;color:#555}
+.modal-content{
+  position:relative;
+  margin:50px auto;
+  max-width:90%;
+  max-height:90vh;
+  text-align:center;
+}
+
+.modal-content img{
+  max-width:100%;
+  max-height:85vh;
+  border-radius:8px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+
+.modal-close{
+  position:absolute;
+  top:-40px;
+  right:0;
+  color:#fff;
+  font-size:35px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.modal-close:hover{
+  color:#f44336;
+}
 </style>
 </head>
 <body>
 <div id="mainframe">
 
-<!-- TÍTULO -->
+<!-- TÍTULO E BOTÕES -->
 <div class="header-bar">
   <h2>Controle de Compras</h2>
-</div>
-
-<!-- BOTÕES INDEPENDENTES -->
-<div class="header-buttons">
-  <button class="btn-nav" id="btnCompras">Compras</button>
-  <button class="btn-nav" id="btnComprovantes">Comprovantes</button>
-  <button class="btn-nav" id="btnConsulta">Consulta</button>
+  <div class="header-buttons">
+    <button class="btn-nav" id="btnCompras">Compras</button>
+    <button class="btn-nav" id="btnComprovantes">Comprovantes</button>
+  </div>
 </div>
 
 <!-- COMPRAS -->
@@ -99,6 +150,12 @@ input,textarea{padding:6px;border:1px solid #ccc;border-radius:4px;font-size:13p
 
 <!-- COMPROVANTES -->
 <div id="comprovantesPage">
+  <div class="filtro-container">
+    <input id="filtro" type="text" placeholder="🔍 Buscar por data, nome ou descrição...">
+    <button class="btn-save" id="btnFiltrar">Buscar</button>
+    <button class="btn-nav" id="btnLimparFiltro">Limpar</button>
+  </div>
+
   <table class="table">
     <thead>
       <tr>
@@ -115,51 +172,179 @@ input,textarea{padding:6px;border:1px solid #ccc;border-radius:4px;font-size:13p
   </table>
 </div>
 
-<!-- CONSULTA -->
-<div id="consultaPage">
-  <div class="card">
-    <input id="filtro" placeholder="Buscar por nome ou data">
-    <button class="btn-save" id="btnFiltrar">Buscar</button>
+<!-- MODAL PARA IMAGEM -->
+<div id="modalImagem" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" id="closeModal">&times;</span>
+    <img id="imagemModal" src="" alt="Comprovante">
   </div>
 </div>
 
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
+const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbzhnJu7vLM0VAPdrhXpY1Mt3QxbcvfGwrhxqV3UFflemD-ctzE1fIr-b2nUvu5GSNFU/exec';
 
-  const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxcoEvzGTSkruI1N1tgJIhL7N1xh15ybpBUqDG2E6lkD89EpSQ74K7X3HNmiK-ziMY/exec';
+let dadosComprovantes = []; // Armazena todos os dados
 
-  const comprasPage=document.getElementById('comprasPage');
-  const comprovantesPage=document.getElementById('comprovantesPage');
-  const consultaPage=document.getElementById('consultaPage');
+document.addEventListener('DOMContentLoaded', () => {
 
-  const nome=document.getElementById('nome');
-  const valor=document.getElementById('valor');
-  const descricao=document.getElementById('descricao');
-  const data=document.getElementById('data');
-  const foto=document.getElementById('foto');
+  // ===== PÁGINAS =====
+  const comprasPage = document.getElementById('comprasPage');
+  const comprovantesPage = document.getElementById('comprovantesPage');
 
-  document.getElementById('btnCompras').onclick=()=>abrir('compras');
-  document.getElementById('btnComprovantes').onclick=()=>abrir('comprovantes');
-  document.getElementById('btnConsulta').onclick=()=>abrir('consulta');
-
-  document.getElementById('btnSalvar').onclick=salvarCompra;
-  document.getElementById('btnFiltrar').onclick=filtrar;
+  // ===== BOTÕES DE NAVEGAÇÃO =====
+  document.getElementById('btnCompras').onclick = () => abrir('compras');
+  document.getElementById('btnComprovantes').onclick = () => abrir('comprovantes');
 
   function abrir(p){
-    comprasPage.style.display = p==='compras' ? 'block' : 'none';
-    comprovantesPage.style.display = p==='comprovantes' ? 'block' : 'none';
-    consultaPage.style.display = p==='consulta' ? 'block' : 'none';
+    comprasPage.style.display = p === 'compras' ? 'block' : 'none';
+    comprovantesPage.style.display = p === 'comprovantes' ? 'block' : 'none';
+
+    if(p === 'comprovantes'){
+      carregarComprovantes();
+    }
   }
 
+  // Abre a primeira aba ao carregar
   abrir('compras');
 
-  valor.addEventListener('input',()=>{
-    let v=valor.value.replace(/\D/g,'');
-    v=(v/100).toFixed(2).replace('.',',');
-    valor.value=v;
+  // ===== CARREGAR COMPROVANTES =====
+  async function carregarComprovantes(){
+    const tbody = document.getElementById('listaComprovantes');
+    tbody.innerHTML = '<tr><td colspan="5">Carregando...</td></tr>';
+
+    try {
+      const resp = await fetch(URL_SCRIPT);
+      const dados = await resp.json();
+
+      console.log('Dados recebidos:', dados); // Debug
+
+      // Verifica se é um array válido
+      if(!Array.isArray(dados) || dados.length === 0){
+        tbody.innerHTML = '<tr><td colspan="5">Nenhum registro</td></tr>';
+        return;
+      }
+
+      dadosComprovantes = dados; // Armazena para filtros
+      renderizarTabela(dados);
+
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="5">Erro ao carregar dados</td></tr>';
+      console.error('Erro detalhado:', e);
+    }
+  }
+
+  // ===== RENDERIZAR TABELA =====
+  function renderizarTabela(dados){
+    const tbody = document.getElementById('listaComprovantes');
+    tbody.innerHTML = '';
+
+    if(!dados.length){
+      tbody.innerHTML = '<tr><td colspan="5">Nenhum resultado encontrado</td></tr>';
+      return;
+    }
+
+    dados.forEach(linha => {
+      const tr = document.createElement('tr');
+      
+      let urlImagem = linha[4];
+      
+      console.log('Valor original da coluna 4:', urlImagem);
+      
+      // Se é apenas um ID (sem http), constrói a URL do Drive
+      if(urlImagem && !urlImagem.includes('http')){
+        urlImagem = `https://drive.google.com/thumbnail?id=${urlImagem}&sz=w1000`;
+        console.log('URL construída:', urlImagem);
+      } 
+      // Se já é uma URL, extrai o ID e reconstrói
+      else if(urlImagem && urlImagem.includes('drive.google.com')){
+        let fileId = null;
+        
+        if(urlImagem.includes('/file/d/')){
+          const match = urlImagem.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+          fileId = match ? match[1] : null;
+        } else if(urlImagem.includes('id=')){
+          const match = urlImagem.match(/id=([a-zA-Z0-9_-]+)/);
+          fileId = match ? match[1] : null;
+        }
+        
+        if(fileId){
+          urlImagem = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+          console.log('ID extraído e URL reconstruída:', urlImagem);
+        }
+      }
+
+      tr.innerHTML = `
+        <td>${formatarData(linha[0])}</td>
+        <td>${linha[1]}</td>
+        <td>${linha[2]}</td>
+        <td>${linha[3]}</td>
+        <td>
+          <button class="btn-anexo" onclick="abrirImagem('${urlImagem.replace(/'/g, "\\'")}')">Ver</button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ===== FORMATAR DATA =====
+  function formatarData(data){
+    const d = new Date(data);
+    return d.toLocaleDateString('pt-BR');
+  }
+
+  // ===== FILTRO =====
+  document.getElementById('btnFiltrar').onclick = function(){
+    const termo = document.getElementById('filtro').value.toLowerCase();
+    
+    if(!termo){
+      renderizarTabela(dadosComprovantes);
+      return;
+    }
+
+    const filtrados = dadosComprovantes.filter(linha => {
+      const data = formatarData(linha[0]).toLowerCase();
+      const nome = linha[1].toLowerCase();
+      const descricao = linha[3].toLowerCase();
+      
+      return data.includes(termo) || nome.includes(termo) || descricao.includes(termo);
+    });
+
+    renderizarTabela(filtrados);
+  };
+
+  // Filtro ao pressionar Enter
+  document.getElementById('filtro').onkeypress = function(e){
+    if(e.key === 'Enter'){
+      document.getElementById('btnFiltrar').click();
+    }
+  };
+
+  // Limpar filtro
+  document.getElementById('btnLimparFiltro').onclick = function(){
+    document.getElementById('filtro').value = '';
+    renderizarTabela(dadosComprovantes);
+  };
+
+  // ===== CAMPOS =====
+  const nome = document.getElementById('nome');
+  const valor = document.getElementById('valor');
+  const descricao = document.getElementById('descricao');
+  const data = document.getElementById('data');
+  const foto = document.getElementById('foto');
+  const btnSalvar = document.getElementById('btnSalvar');
+
+  // ===== FORMATAR VALOR =====
+  valor.addEventListener('input', () => {
+    let v = valor.value.replace(/\D/g,'');
+    v = (v/100).toFixed(2).replace('.',',');
+    valor.value = v;
   });
+
+  // ===== SALVAR COMPRA =====
+  btnSalvar.addEventListener('click', salvarCompra);
 
   function salvarCompra(){
     if(!nome.value || !valor.value || !descricao.value || !data.value){
@@ -167,56 +352,120 @@ document.addEventListener('DOMContentLoaded',()=>{
       return;
     }
 
-    const payload = {
-      nome: nome.value,
-      valor: valor.value,
-      descricao: descricao.value,
-      data: data.value
+    const file = foto.files[0];
+    if(!file){
+      alert('Selecione o comprovante');
+      return;
+    }
+
+    btnSalvar.disabled = true;
+    btnSalvar.innerText = 'Enviando...';
+
+    const reader = new FileReader();
+    reader.onload = function(){
+      const base64 = reader.result.split(',')[1];
+
+      const dados = {
+        nome: nome.value,
+        valor: valor.value,
+        descricao: descricao.value,
+        data: data.value,
+        imagem: file.name,
+        imagemTipo: file.type,
+        imagemBase64: base64
+      };
+
+      fetch(URL_SCRIPT, {
+        method: 'POST',
+        body: JSON.stringify(dados)
+      })
+      .then(response => response.json())
+      .then(resp => {
+        btnSalvar.disabled = false;
+        btnSalvar.innerText = 'Salvar Compra';
+        
+        if(resp.status === 'ok'){
+          alert('Compra salva com comprovante ✅');
+          limparFormulario();
+        } else {
+          alert('Erro no servidor:\n' + resp.message);
+        }
+      })
+      .catch(err => {
+        btnSalvar.disabled = false;
+        btnSalvar.innerText = 'Salvar Compra';
+        alert('Erro de conexão');
+        console.error(err);
+      });
     };
-
- fetch(WEBAPP_URL, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(payload)
-})
-.then(r => r.text())
-.then(txt => {
-  console.log('Resposta do servidor:', txt);
-
-  let res;
-  try {
-    res = JSON.parse(txt);
-  } catch {
-    alert('Erro: resposta inválida do servidor');
-    return;
+    reader.readAsDataURL(file);
   }
 
-  if (res.status === 'ok') {
-    alert('Compra salva com sucesso!');
-    nome.value='';
-    valor.value='';
-    descricao.value='';
-    data.value='';
-  } else {
-    alert('Erro ao salvar: ' + (res.message || ''));
+  function limparFormulario(){
+    nome.value = '';
+    valor.value = '';
+    descricao.value = '';
+    data.value = '';
+    foto.value = '';
   }
-})
-.catch(err=>{
-  alert('Erro de conexão');
-  console.error(err);
+
 });
 
+// ===== MODAL DE IMAGEM (fora do DOMContentLoaded para funcionar com onclick) =====
+function abrirImagem(url){
+  console.log('Abrindo imagem:', url); // Debug
+  
+  const modal = document.getElementById('modalImagem');
+  const img = document.getElementById('imagemModal');
+  
+  if(!modal || !img){
+    console.error('Modal ou imagem não encontrados!');
+    alert('Erro ao abrir modal. Tente recarregar a página.');
+    return;
+  }
+  
+  // Limpa imagem anterior
+  img.src = '';
+  
+  // Mostra modal
+  modal.style.display = 'block';
+  
+  // Adiciona eventos de carregamento
+  img.onload = function(){
+    console.log('Imagem carregada com sucesso!');
+  };
+  
+  img.onerror = function(){
+    console.error('Erro ao carregar imagem:', url);
+    alert('Erro ao carregar imagem. Verifique as permissões no Google Drive.');
+    modal.style.display = 'none';
+  };
+  
+  // Define a URL da imagem
+  img.src = url;
+  
+  console.log('Modal aberto com sucesso!'); // Debug
+}
+
+// Configurar eventos do modal quando a página carregar
+window.addEventListener('DOMContentLoaded', () => {
+  // Fechar modal ao clicar no X
+  const closeBtn = document.getElementById('closeModal');
+  if(closeBtn){
+    closeBtn.onclick = function(){
+      document.getElementById('modalImagem').style.display = 'none';
+    };
   }
 
-  function filtrar(){
-    const f=document.getElementById('filtro').value.toLowerCase();
-    document.querySelectorAll('#listaComprovantes tr').forEach(tr=>{
-      tr.style.display = tr.innerText.toLowerCase().includes(f) ? '' : 'none';
-    });
+  // Fechar modal ao clicar fora da imagem
+  const modal = document.getElementById('modalImagem');
+  if(modal){
+    modal.onclick = function(e){
+      if(e.target.id === 'modalImagem'){
+        this.style.display = 'none';
+      }
+    };
   }
-
 });
 </script>
 
