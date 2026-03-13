@@ -590,6 +590,94 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
     width:100%;
   }
 }
+/* ════════════════════════════════
+   PREVISÃO MODAL
+════════════════════════════════ */
+.prev-modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.6); z-index:500;
+  place-items:center; backdrop-filter:blur(3px);
+}
+.prev-modal-overlay.open { display:grid; }
+.prev-modal {
+  background:var(--surface); border-radius:20px;
+  box-shadow:var(--shadow-lg); width:min(760px,96vw);
+  max-height:88vh; display:flex; flex-direction:column;
+  overflow:hidden;
+}
+.prev-modal-header {
+  background:var(--text); color:#fff;
+  padding:16px 20px; display:flex; align-items:center;
+  justify-content:space-between; flex-shrink:0;
+}
+.prev-modal-title { font-size:15px; font-weight:700; }
+.prev-modal-sub { font-size:11px; opacity:.45; margin-top:2px; }
+.prev-modal-close {
+  background:none; border:none; color:#fff; font-size:22px;
+  cursor:pointer; padding:4px 8px; border-radius:6px; line-height:1;
+}
+.prev-modal-close:hover { background:rgba(255,255,255,.15); }
+.prev-modal-body { overflow-y:auto; padding:20px; flex:1; }
+
+/* Month block */
+.prev-month-block { margin-bottom:20px; }
+.prev-month-title {
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--muted); padding:6px 0; margin-bottom:8px;
+  border-bottom:2px solid var(--border); display:flex;
+  align-items:center; justify-content:space-between;
+}
+.prev-month-total {
+  font-family:var(--mono); font-size:13px; font-weight:700;
+  color:var(--text); background:var(--surface2);
+  padding:3px 10px; border-radius:20px; border:1px solid var(--border);
+}
+/* Resp group */
+.prev-resp-group { margin-bottom:10px; }
+.prev-resp-label {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+  padding:3px 8px; border-radius:6px; margin-bottom:5px; display:inline-block;
+}
+/* Row */
+.prev-row {
+  display:grid; grid-template-columns:56px 1fr auto;
+  gap:6px; align-items:center;
+  padding:6px 10px; border-radius:8px; margin-bottom:3px;
+  background:var(--surface2); border:1px solid var(--border);
+  font-size:12px;
+}
+.prev-row-date { font-family:var(--mono); font-size:11px; color:var(--muted); }
+.prev-row-desc { color:var(--text); }
+.prev-row-parc { font-size:10px; color:var(--muted); font-family:var(--mono); }
+.prev-row-val {
+  font-family:var(--mono); font-size:12px; font-weight:600;
+  color:#4338ca; text-align:right; white-space:nowrap;
+}
+/* Resp total row */
+.prev-resp-total {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:5px 10px; border-radius:8px; margin-top:4px;
+  font-size:11px; font-weight:600; font-family:var(--mono);
+  background:var(--surface); border:1px solid var(--border2);
+  color:var(--muted);
+}
+.prev-no-parc {
+  padding:32px; text-align:center; color:var(--muted); font-size:13px;
+}
+/* Save banner */
+.prev-save-bar {
+  background:var(--green-light); border-top:1px solid #bbf7d0;
+  padding:10px 20px; display:flex; align-items:center;
+  justify-content:space-between; gap:12px; flex-shrink:0;
+  font-size:12px; color:var(--green);
+}
+.prev-save-btn {
+  padding:7px 16px; border-radius:8px; border:none;
+  background:var(--green); color:#fff; font-size:12px; font-weight:700;
+  font-family:var(--font); cursor:pointer; white-space:nowrap;
+  box-shadow:2px 2px 0 #14532d; transition:all .15s;
+}
+.prev-save-btn:hover { transform:translate(-1px,-1px); box-shadow:3px 3px 0 #14532d; }
 </style>
 </head>
 <body>
@@ -646,6 +734,7 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
       <div class="fatura-sub-right">
         <button class="btn btn-ghost" onclick="addRow()">＋ Linha</button>
         <button class="btn btn-ghost" onclick="resetApp()">📂 Novo PDF</button>
+        <button class="btn btn-ghost" onclick="openPrevisao()" style="color:#7c3aed;border-color:#c4b5fd">📅 Previsão</button>
         <button class="btn btn-green" onclick="exportExcel()">⬇ Exportar Excel</button>
       </div>
     </div>
@@ -795,10 +884,19 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
     <div class="c-card">
       <div class="c-card-header">
         <div class="c-card-icon c-icon-list">📋</div>
-        <div>
+        <div style="flex:1">
           <div class="c-card-title">Comprovantes</div>
           <div class="c-card-sub">Histórico de compras registradas</div>
         </div>
+        <a href="https://docs.google.com/spreadsheets/d/1CYRTuTuizEjeD8aNk0ZuJYBzVU4yW2E_isd6ZFl6F1o/edit" target="_blank"
+           style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;
+                  border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;
+                  color:#15803d;font-size:11px;font-weight:700;font-family:var(--font);
+                  text-decoration:none;white-space:nowrap;transition:all .15s;flex-shrink:0"
+           onmouseover="this.style.background='#16a34a';this.style.color='#fff'"
+           onmouseout="this.style.background='#f0fdf4';this.style.color='#15803d'">
+          📊 Planilha
+        </a>
       </div>
       <div class="c-card-body">
         <div class="c-filter-bar">
@@ -835,6 +933,28 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
   <div class="img-modal-inner">
     <button class="img-modal-close" onclick="fecharModal()">✕</button>
     <img id="imgModalSrc" src="" alt="Comprovante">
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: PREVISÃO DE PARCELAS
+══════════════════════════════════════ -->
+<div class="prev-modal-overlay" id="prevModalOverlay" onclick="if(event.target===this)closePrevisao()">
+  <div class="prev-modal">
+    <div class="prev-modal-header">
+      <div>
+        <div class="prev-modal-title">📅 Previsão de Parcelas Futuras</div>
+        <div class="prev-modal-sub">Compras parceladas pendentes até dezembro</div>
+      </div>
+      <button class="prev-modal-close" onclick="closePrevisao()">✕</button>
+    </div>
+    <div class="prev-modal-body" id="prevModalBody">
+      <!-- Preenchido por buildPrevisao() -->
+    </div>
+    <div class="prev-save-bar" id="prevSaveBar" style="display:none">
+      <span>💾 Salvar responsáveis atribuídos para preenchimento automático nas próximas faturas</span>
+      <button class="prev-save-btn" onclick="salvarMemoria()">Salvar memória</button>
+    </div>
   </div>
 </div>
 
@@ -934,11 +1054,17 @@ async function loadPDF(file) {
   }
 }
 
-function showFaturaApp() {
+async function showFaturaApp() {
   document.getElementById('faturaUpload').style.display='none';
   document.getElementById('faturaApp').style.display='block';
   document.getElementById('fileBadge').textContent=currentFileName||'Fatura';
+  // Aplica memória antes de renderizar
   renderTable(); renderRespConfig(); renderTotals();
+  const aplicados = await aplicarMemoria();
+  if (aplicados > 0) {
+    renderTable(); renderTotals();
+    toast(`🧠 ${aplicados} responsável${aplicados>1?'is':''} preenchido${aplicados>1?'s':''} automaticamente!`);
+  }
 }
 
 function parseFatura(text) {
@@ -965,8 +1091,10 @@ function parseFatura(text) {
       const valor=parseFloat(vm[2].replace(/\./g,'').replace(',','.'));
       const desc=rest.replace(valRe,'').replace(/\s*BR\s*$/i,'').trim();
       if (!isNaN(valor)&&desc.length>1) {
-        const cat2=desc.toLowerCase().includes('parc')?'Compras Parceladas':currentCat;
-        result.push({id:++rowCounter,data,desc,categoria:cat2,valor,resp:''});
+        const isParcela = desc.toLowerCase().includes('parc') || currentCat.toLowerCase().includes('parcel');
+        const cat2 = isParcela ? 'Compras Parceladas' : currentCat;
+        const parcInfo = extractParcInfo(desc);
+        result.push({id:++rowCounter,data,desc,categoria:cat2,valor,resp:'', ...parcInfo});
       }
     } else {
       const nl=(lines[i+1]||'').trim();
@@ -975,14 +1103,30 @@ function parseFatura(text) {
         const valor=parseFloat(nvm[2].replace(/\./g,'').replace(',','.'));
         const desc=rest.replace(/\s*BR\s*$/i,'').trim();
         if (!isNaN(valor)&&desc.length>1) {
-          const cat2=desc.toLowerCase().includes('parc')?'Compras Parceladas':currentCat;
-          result.push({id:++rowCounter,data,desc,categoria:cat2,valor,resp:''});
+          const isParcela = desc.toLowerCase().includes('parc') || currentCat.toLowerCase().includes('parcel');
+          const cat2 = isParcela ? 'Compras Parceladas' : currentCat;
+          const parcInfo = extractParcInfo(desc);
+          result.push({id:++rowCounter,data,desc,categoria:cat2,valor,resp:'', ...parcInfo});
           i++;
         }
       }
     }
   }
   return result.length>=2?result:parseFallback(text);
+}
+
+// Extrai "PARC 03/12" ou "03/12" da descrição
+function extractParcInfo(desc) {
+  // Padrões: "PARC 03/12", "03/12", "3/12"
+  const m = desc.match(/(?:PARC\s+)?(\d{1,2})\/(\d{1,2})/i);
+  if (m) {
+    const parcAtual = parseInt(m[1]);
+    const parcTotal = parseInt(m[2]);
+    if (parcAtual >= 1 && parcTotal > 1 && parcAtual <= parcTotal) {
+      return { parcAtual, parcTotal, isParcela: true };
+    }
+  }
+  return { parcAtual: null, parcTotal: null, isParcela: false };
 }
 
 function parseFallback(text) {
@@ -1284,10 +1428,230 @@ function resetApp(){
   document.getElementById('fileIn').value='';
 }
 
+// ── Memória de responsáveis (Google Sheets) ────────────────────────────────────
+async function salvarMemoria() {
+  const mem = {};
+  rows.filter(r => r.resp).forEach(r => {
+    mem[normalizeDescKey(r.desc)] = r.resp;
+  });
+
+  if (Object.keys(mem).length === 0) {
+    toast('⚠ Nenhum responsável preenchido para salvar.');
+    return;
+  }
+
+  const saveBtn = document.querySelector('.prev-save-btn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ Salvando…'; }
+
+  try {
+    await fetch(URL_SCRIPT, {
+      method: 'POST',
+      body: JSON.stringify({ acao: 'salvarMemoria', memoria: mem })
+    });
+    toast('✅ Memória salva! Próximas faturas serão preenchidas automaticamente.');
+  } catch(e) {
+    toast('✗ Erro ao salvar memória. Verifique a conexão.');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Salvar memória'; }
+  }
+}
+
+async function carregarMemoriaRemota() {
+  try {
+    const resp = await fetch(URL_SCRIPT + '?acao=lerMemoria');
+    const data = await resp.json();
+    return data && data.memoria ? data.memoria : {};
+  } catch(e) {
+    return {};
+  }
+}
+
+function normalizeDescKey(desc) {
+  return desc
+    .replace(/\s*(?:PARC\s+)?\d{1,2}\/\d{1,2}/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
+}
+
+async function aplicarMemoria() {
+  const mem = await carregarMemoriaRemota();
+  let aplicados = 0;
+  rows.forEach(r => {
+    if (!r.resp) {
+      const chave = normalizeDescKey(r.desc);
+      if (mem[chave]) { r.resp = mem[chave]; aplicados++; }
+    }
+  });
+  return aplicados;
+}
+
+// ── Previsão de Parcelas ───────────────────────────────────────────────────────
+function openPrevisao() {
+  buildPrevisao();
+  document.getElementById('prevModalOverlay').classList.add('open');
+}
+
+function closePrevisao() {
+  document.getElementById('prevModalOverlay').classList.remove('open');
+}
+
+function buildPrevisao() {
+  const body = document.getElementById('prevModalBody');
+  const saveBar = document.getElementById('prevSaveBar');
+  body.innerHTML = '';
+
+  // Parcelas desta fatura
+  const parcelas = rows.filter(r => r.isParcela && r.parcAtual !== null && r.parcTotal !== null);
+
+  if (parcelas.length === 0) {
+    body.innerHTML = '<div class="prev-no-parc">Nenhuma compra parcelada detectada nesta fatura.<br><small>O app detecta parcelas no formato PARC XX/YY na descrição.</small></div>';
+    saveBar.style.display = 'none';
+    return;
+  }
+
+  // Determina o mês de referência da fatura (mês com mais lançamentos)
+  const mesCounts = {};
+  rows.forEach(r => {
+    if (r.data) {
+      const p = r.data.split('/');
+      if (p.length === 2) { const k = p[1]||'01'; mesCounts[k]=(mesCounts[k]||0)+1; }
+    }
+  });
+  // Mês da fatura = mês dominante, ou mês atual
+  const mesRefStr = Object.entries(mesCounts).sort((a,b)=>b[1]-a[1])[0]?.[0] || String(new Date().getMonth()+1).padStart(2,'0');
+  const anoAtual = new Date().getFullYear();
+  const mesRef = parseInt(mesRefStr);
+
+  // Meses futuros: de mesRef+1 até dezembro
+  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mesesFuturos = [];
+  for (let m = mesRef + 1; m <= 12; m++) mesesFuturos.push(m);
+
+  if (mesesFuturos.length === 0) {
+    body.innerHTML = '<div class="prev-no-parc">Fatura de dezembro — sem parcelas futuras no ano. 🎉</div>';
+    saveBar.style.display = 'none';
+    return;
+  }
+
+  // Projeta parcelas futuras
+  // Para cada parcela, calcula quais meses futuros ainda existirão
+  const projecoes = []; // { mes, descBase, descFull, parcFutura, parcTotal, valor, resp }
+  parcelas.forEach(row => {
+    const parcRestantes = row.parcTotal - row.parcAtual;
+    for (let i = 1; i <= parcRestantes; i++) {
+      const mesFuturo = mesRef + i;
+      if (mesFuturo > 12) break;
+      const parcFutura = row.parcAtual + i;
+      // Reconstrói descrição substituindo número da parcela
+      const descBase = row.desc.replace(/(\d{1,2})\/(\d{1,2})/g, `${String(parcFutura).padStart(2,'0')}/${String(row.parcTotal).padStart(2,'0')}`);
+      projecoes.push({
+        mes: mesFuturo,
+        descBase,
+        descOrig: row.desc,
+        parcFutura,
+        parcTotal: row.parcTotal,
+        valor: row.valor,
+        resp: row.resp || '',
+      });
+    }
+  });
+
+  if (projecoes.length === 0) {
+    body.innerHTML = '<div class="prev-no-parc">Todas as parcelas vencem neste mês. Nada pendente!</div>';
+    saveBar.style.display = 'none';
+    return;
+  }
+
+  // Agrupa por mês
+  mesesFuturos.forEach(mes => {
+    const doMes = projecoes.filter(p => p.mes === mes);
+    if (doMes.length === 0) return;
+
+    const totalMes = doMes.reduce((s,p)=>s+p.valor, 0);
+    const block = document.createElement('div');
+    block.className = 'prev-month-block';
+
+    const header = document.createElement('div');
+    header.className = 'prev-month-title';
+    header.innerHTML = `<span>${MESES[mes-1].toUpperCase()} ${anoAtual}</span>
+      <span class="prev-month-total">${fmtBRL(totalMes)}</span>`;
+    block.appendChild(header);
+
+    // Agrupa por responsável dentro do mês
+    const semResp = doMes.filter(p=>!p.resp);
+    const comResp = {};
+    doMes.filter(p=>p.resp).forEach(p=>{
+      if(!comResp[p.resp]) comResp[p.resp]=[];
+      comResp[p.resp].push(p);
+    });
+
+    // Renderiza por responsável
+    Object.entries(comResp).forEach(([resp, itens]) => {
+      const respInfo = responsaveis.find(r=>r.nome===resp);
+      const cor = respInfo?.cor || '#6b7280';
+      const tc = contrastColor(cor);
+      const totalResp = itens.reduce((s,p)=>s+p.valor,0);
+
+      const grp = document.createElement('div');
+      grp.className = 'prev-resp-group';
+      grp.innerHTML = `<div class="prev-resp-label" style="background:${cor};color:${tc}">👤 ${esc(resp)}</div>`;
+      itens.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'prev-row';
+        row.innerHTML = `
+          <div class="prev-row-date">${String(p.mes).padStart(2,'0')}/${anoAtual}</div>
+          <div>
+            <div class="prev-row-desc">${esc(p.descBase)}</div>
+            <div class="prev-row-parc">${p.parcFutura}/${p.parcTotal}</div>
+          </div>
+          <div class="prev-row-val">${fmtBRL(p.valor)}</div>`;
+        grp.appendChild(row);
+      });
+      const totRow = document.createElement('div');
+      totRow.className = 'prev-resp-total';
+      totRow.innerHTML = `<span>${esc(resp)}</span><span>${fmtBRL(totalResp)}</span>`;
+      grp.appendChild(totRow);
+      block.appendChild(grp);
+    });
+
+    // Sem responsável
+    if (semResp.length > 0) {
+      const grp = document.createElement('div');
+      grp.className = 'prev-resp-group';
+      grp.innerHTML = `<div class="prev-resp-label" style="background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb">⚠ Sem responsável</div>`;
+      semResp.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'prev-row';
+        row.style.borderColor = '#fde68a';
+        row.style.background = '#fffbeb';
+        row.innerHTML = `
+          <div class="prev-row-date">${String(p.mes).padStart(2,'0')}/${anoAtual}</div>
+          <div>
+            <div class="prev-row-desc">${esc(p.descBase)}</div>
+            <div class="prev-row-parc">${p.parcFutura}/${p.parcTotal}</div>
+          </div>
+          <div class="prev-row-val" style="color:#b45309">${fmtBRL(p.valor)}</div>`;
+        grp.appendChild(row);
+      });
+      const totRow = document.createElement('div');
+      totRow.className = 'prev-resp-total';
+      totRow.innerHTML = `<span style="color:#9ca3af">Sem responsável (${semResp.length} item${semResp.length>1?'s':''})</span><span style="color:#b45309">${fmtBRL(semResp.reduce((s,p)=>s+p.valor,0))}</span>`;
+      grp.appendChild(totRow);
+      block.appendChild(grp);
+    }
+
+    body.appendChild(block);
+  });
+
+  // Mostra barra de salvar
+  saveBar.style.display = 'flex';
+}
+
 // ════════════════════════════════════════
 // COMPRAS APP
 // ════════════════════════════════════════
-const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbzhnJu7vLM0VAPdrhXpY1Mt3QxbcvfGwrhxqV3UFflemD-ctzE1fIr-b2nUvu5GSNFU/exec';
+const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbz_kJb-FvGL0vaNkL5lqhXkMrlyTyCcZWFKV81p1q777tWYDINiWrSogp5O5pjRk4uT/exec';
 let dadosComprovantes = [];
 
 function onFotoChange(input) {
